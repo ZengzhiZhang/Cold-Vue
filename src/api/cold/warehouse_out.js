@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+
+export function listWarehouse_out_wname(query) {
+  return request({
+    url: '/cold/warehouse_out/listWName',
+    method: 'get',
+    params: query
+  })
+}
 // 查询出库列表
 export function listWarehouse_out(query) {
   return request({

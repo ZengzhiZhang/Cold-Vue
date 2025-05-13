@@ -1,14 +1,18 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+
       <el-form-item label="客户" prop="warehouseOutClientId">
-        <el-input
-          v-model="queryParams.warehouseOutClientId"
-          placeholder="请输入客户"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-select v-model="queryParams.warehouseOutClientId" placeholder="客户" clearable>
+          <el-option
+            v-for="client in clientList"
+            :key="client.clientInfoId"
+            :label="client.clientInfoName"
+            :value="client.clientInfoId"
+          ></el-option>
+        </el-select>
       </el-form-item>
+
       <el-form-item label="品类" prop="warehouseOutCategory">
         <el-select v-model="queryParams.warehouseOutCategory" placeholder="请选择品类" clearable>
           <el-option
@@ -112,13 +116,13 @@
           v-hasPermi="['cold:warehouse_out:export']"
         >导出</el-button>
       </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getWNameList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="warehouse_outList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="出库操作ID" align="center" prop="warehouseOutId" />
-      <el-table-column label="客户" align="center" prop="warehouseOutClientId" />
+<!--      <el-table-column label="出库操作ID" align="center" prop="warehouseOutId" />-->
+      <el-table-column label="客户" align="center" prop="warehouseOutClientName" />
       <el-table-column label="品类" align="center" prop="warehouseOutCategory">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.warehouse_category" :value="scope.row.warehouseOutCategory"/>
@@ -160,20 +164,28 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
-      @pagination="getList"
+      @pagination="getWNameList"
     />
 
     <!-- 添加或修改出库对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="客户" prop="warehouseOutClientId">
-          <el-input v-model="form.warehouseOutClientId" placeholder="请输入客户" />
+          <el-select v-model="form.warehouseOutClientId" placeholder="请选择客户">
+            <el-option
+              v-for="client in clientList"
+              :key="client.clientInfoId"
+              :label="client.clientInfoName"
+              :value="client.clientInfoId"
+            ></el-option>
+          </el-select>
+
         </el-form-item>
         <el-form-item label="品类" prop="warehouseOutCategory">
           <el-select v-model="form.warehouseOutCategory" placeholder="请选择品类">
@@ -230,6 +242,8 @@
 
 <script>
 import { listWarehouse_out, getWarehouse_out, delWarehouse_out, addWarehouse_out, updateWarehouse_out } from "@/api/cold/warehouse_out"
+import {listWarehouse_out_wname} from "../../../api/cold/warehouse_out";
+import {listClient} from "../../../api/cold/client";
 
 export default {
   name: "Warehouse_out",
@@ -250,6 +264,7 @@ export default {
       total: 0,
       // 出库表格数据
       warehouse_outList: [],
+
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -268,6 +283,7 @@ export default {
       },
       // 表单参数
       form: {},
+      clientList: [],
       // 表单校验
       rules: {
         warehouseOutClientId: [
@@ -295,9 +311,26 @@ export default {
     }
   },
   created() {
-    this.getList()
+    this.getClientList()
+    this.getWNameList()
   },
   methods: {
+
+    getWNameList() {
+      this.loading = true
+      listWarehouse_out_wname(this.queryParams).then(response => {
+        this.warehouse_outList = response.rows
+        this.total = response.total
+        this.loading = false
+      })
+    },
+
+    getClientList() {
+      listClient(null).then(response => {
+        this.clientList = response.rows
+
+      })
+    },
     /** 查询出库列表 */
     getList() {
       this.loading = true
@@ -329,7 +362,7 @@ export default {
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1
-      this.getList()
+      this.getWNameList()
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -366,13 +399,13 @@ export default {
             updateWarehouse_out(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
-              this.getList()
+              this.getWNameList()
             })
           } else {
             addWarehouse_out(this.form).then(response => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
-              this.getList()
+              this.getWNameList()
             })
           }
         }
@@ -384,7 +417,7 @@ export default {
       this.$modal.confirm('是否确认删除出库编号为"' + warehouseOutIds + '"的数据项？').then(function() {
         return delWarehouse_out(warehouseOutIds)
       }).then(() => {
-        this.getList()
+        this.getWNameList()
         this.$modal.msgSuccess("删除成功")
       }).catch(() => {})
     },

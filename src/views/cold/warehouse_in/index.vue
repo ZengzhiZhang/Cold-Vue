@@ -1,6 +1,16 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="客户" prop="warehouseInClient">
+        <el-select v-model="queryParams.warehouseInClient" placeholder="客户" clearable>
+          <el-option
+            v-for="client in clientList"
+            :key="client.clientInfoId"
+            :label="client.clientInfoName"
+            :value="client.clientInfoId"
+          ></el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="品类" prop="warehouseInCategory">
         <el-select v-model="queryParams.warehouseInCategory" placeholder="请选择品类" clearable>
           <el-option
@@ -195,7 +205,7 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="客户" prop="warehouseInClient">
-          <el-select v-model="form.warehouseInClient" placeholder="请选择品类">
+          <el-select v-model="form.warehouseInClient" placeholder="请选择客户">
             <el-option
               v-for="client in clientList"
               :key="client.clientInfoId"
@@ -359,14 +369,11 @@ export default {
     toClientInfoPage() {
       this.cancel()
       this.$router.push({ path: "/cold/client" });
-
-
     },
     getWNameList() {
       this.loading = true
       listWarehouse_in_wname(this.queryParams).then(response => {
         this.warehouse_inList = response.rows
-        console.log(this.warehouse_inList)
         this.total = response.total
         this.loading = false
       })
@@ -377,7 +384,6 @@ export default {
       this.loading = true
       listWarehouse_in(this.queryParams).then(response => {
         this.warehouse_inList = response.rows
-
         this.total = response.total
         this.loading = false
       })
@@ -385,7 +391,7 @@ export default {
     getClientList() {
       listClient(null).then(response => {
         this.clientList = response.rows
-
+        console.log(this.clientList)
       })
     },
     // 取消按钮
@@ -412,6 +418,7 @@ export default {
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1
+      console.log(this.queryParams)
       this.getWNameList()
     },
     /** 重置按钮操作 */
