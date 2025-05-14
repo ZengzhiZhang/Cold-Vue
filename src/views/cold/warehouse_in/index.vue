@@ -75,8 +75,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="入库完成标识" prop="warehouseInFinish">
-        <el-select v-model="queryParams.warehouseInFinish" placeholder="请选择入库完成标识" clearable>
+      <el-form-item label="入库完成" prop="warehouseInFinish">
+        <el-select v-model="queryParams.warehouseInFinish" placeholder="入库完成" clearable>
           <el-option
             v-for="dict in dict.type.warehouse_in_finish"
             :key="dict.value"
@@ -260,16 +260,6 @@
             placeholder="请选择入库时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="结算标识" prop="warehouseInSettle">
-          <el-select v-model="form.warehouseInSettle" placeholder="请选择结算标识">
-            <el-option
-              v-for="dict in dict.type.warehouse_in_settle"
-              :key="dict.value"
-              :label="dict.label"
-              :value="parseInt(dict.value)"
-            ></el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item label="入库完成标识" prop="warehouseInFinish">
           <el-select v-model="form.warehouseInFinish" placeholder="请选择入库完成标识">
             <el-option
@@ -280,7 +270,40 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="结算标识" prop="warehouseInSettle">
+          <el-select v-model="form.warehouseInSettle" placeholder="请选择结算标识">
+            <el-option
+              v-for="dict in dict.type.warehouse_in_settle"
+              :key="dict.value"
+              :label="dict.label"
+              :value="parseInt(dict.value)"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
+      <el-row :gutter="20">
+        <el-col span="6">
+          <el-statistic
+            group-separator=","
+            :precision="2"
+            :value="form.warehouseInQuantity*form.warehouseInPrice"
+            title="总库费"
+            :value-style="{color:'#1890FF',fontSize:'30px'}"
+          >
+
+            <template slot="prefix">
+              <i class="el-icon-s-flag" style="color: #1890FF"></i>
+            </template>
+<!--            <template slot="suffix">-->
+<!--              <i class="el-icon-s-flag" style="color: blue"></i>-->
+<!--            </template>-->
+          </el-statistic>
+        </el-col>
+      </el-row>
+
+
+
+
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
@@ -411,7 +434,7 @@ export default {
         warehouseInNumber: null,
         warehouseInTime: null,
         warehouseInSettle: null,
-        warehouseInFinish: null
+        warehouseInFinish: 0
       }
       this.resetForm("form")
     },

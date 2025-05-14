@@ -355,7 +355,7 @@ export default {
         warehouseOutQuantity: null,
         warehouseOutTime: null,
         warehouseOutMoney: null,
-        warehouseOutManner: null
+        warehouseOutManner: 0
       }
       this.resetForm("form")
     },
