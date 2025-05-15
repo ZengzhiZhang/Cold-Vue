@@ -9,10 +9,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="客户手机号" prop="clientInfoPhone">
+      <el-form-item label="手机号" prop="clientInfoPhone">
         <el-input
           v-model="queryParams.clientInfoPhone"
-          placeholder="请输入客户手机号"
+          placeholder="请输入手机号"
           clearable
           @keyup.enter.native="handleQuery"
         />

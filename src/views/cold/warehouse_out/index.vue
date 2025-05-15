@@ -3,7 +3,7 @@
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
 
       <el-form-item label="客户" prop="warehouseOutClientId">
-        <el-select v-model="queryParams.warehouseOutClientId" placeholder="客户" clearable>
+        <el-select v-model="queryParams.warehouseOutClientId" placeholder="客户" clearable filterable>
           <el-option
             v-for="client in clientList"
             :key="client.clientInfoId"
@@ -33,14 +33,25 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="数量" prop="warehouseOutQuantity">
-        <el-input
-          v-model="queryParams.warehouseOutQuantity"
-          placeholder="请输入数量"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+
+      <el-form-item label="单位" prop="warehouseOutUnit">
+        <el-select v-model="queryParams.warehouseOutUnit" placeholder="请选择单位" clearable>
+          <el-option
+            v-for="dict in dict.type.warehouse_unit"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
+<!--      <el-form-item label="数量" prop="warehouseOutQuantity">-->
+<!--        <el-input -->
+<!--          v-model="queryParams.warehouseOutQuantity"-->
+<!--          placeholder="请输入数量"-->
+<!--          clearable-->
+<!--          @keyup.enter.native="handleQuery"-->
+<!--        />-->
+<!--      </el-form-item>-->
       <el-form-item label="出货时间" prop="warehouseOutTime">
         <el-date-picker clearable
           v-model="queryParams.warehouseOutTime"
@@ -49,18 +60,28 @@
           placeholder="请选择出货时间">
         </el-date-picker>
       </el-form-item>
-      <el-form-item label="金额" prop="warehouseOutMoney">
-        <el-input
-          v-model="queryParams.warehouseOutMoney"
-          placeholder="请输入金额"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+<!--      <el-form-item label="金额" prop="warehouseOutMoney">-->
+<!--        <el-input-->
+<!--          v-model="queryParams.warehouseOutMoney"-->
+<!--          placeholder="请输入金额"-->
+<!--          clearable-->
+<!--          @keyup.enter.native="handleQuery"-->
+<!--        />-->
+<!--      </el-form-item>-->
       <el-form-item label="收款方式" prop="warehouseOutManner">
         <el-select v-model="queryParams.warehouseOutManner" placeholder="请选择收款方式" clearable>
           <el-option
             v-for="dict in dict.type.warehouse_out_manner"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="结算标识" prop="warehouseOutSettle">
+        <el-select v-model="queryParams.warehouseOutSettle" placeholder="请选择结算标识" clearable>
+          <el-option
+            v-for="dict in dict.type.warehouse_in_settle"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -134,6 +155,11 @@
         </template>
       </el-table-column>
       <el-table-column label="数量" align="center" prop="warehouseOutQuantity" />
+      <el-table-column label="单位" align="center" prop="warehouseOutUnit">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.warehouse_unit" :value="scope.row.warehouseOutUnit"/>
+        </template>
+      </el-table-column>
       <el-table-column label="出货时间" align="center" prop="warehouseOutTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.warehouseOutTime, '{y}-{m}-{d}') }}</span>
@@ -143,6 +169,11 @@
       <el-table-column label="收款方式" align="center" prop="warehouseOutManner">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.warehouse_out_manner" :value="scope.row.warehouseOutManner"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="结算标识" align="center" prop="warehouseOutSettle">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.warehouse_in_settle" :value="scope.row.warehouseOutSettle"/>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -187,6 +218,8 @@
           </el-select>
 
         </el-form-item>
+
+
         <el-form-item label="品类" prop="warehouseOutCategory">
           <el-select v-model="form.warehouseOutCategory" placeholder="请选择品类">
             <el-option
@@ -208,7 +241,21 @@
           </el-select>
         </el-form-item>
         <el-form-item label="数量" prop="warehouseOutQuantity">
-          <el-input v-model="form.warehouseOutQuantity" placeholder="请输入数量" />
+          <el-input-number :precision="2" :min="0" v-model="form.warehouseOutQuantity" placeholder="请输入数量" />
+        </el-form-item>
+        <el-form-item label="单价" prop="warehouseOutMoney">
+          <el-input-number :precision="2" :min="0" v-model="form.warehouseOutMoney" placeholder="请输入金额" />
+        </el-form-item>
+
+        <el-form-item label="单位" prop="warehouseOutUnit">
+          <el-select v-model="form.warehouseOutUnit" placeholder="请选择单位">
+            <el-option
+              v-for="dict in dict.type.warehouse_unit"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="出货时间" prop="warehouseOutTime">
           <el-date-picker clearable
@@ -218,9 +265,7 @@
             placeholder="请选择出货时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="金额" prop="warehouseOutMoney">
-          <el-input v-model="form.warehouseOutMoney" placeholder="请输入金额" />
-        </el-form-item>
+
         <el-form-item label="收款方式" prop="warehouseOutManner">
           <el-select v-model="form.warehouseOutManner" placeholder="请选择收款方式">
             <el-option
@@ -231,7 +276,37 @@
             ></el-option>
           </el-select>
         </el-form-item>
+
+<!--        <el-form-item label="结算标识" prop="warehouseOutSettle">-->
+<!--          <el-select v-model="form.warehouseOutSettle" placeholder="请选择结算标识">-->
+<!--            <el-option-->
+<!--              v-for="dict in dict.type.warehouse_in_settle"-->
+<!--              :key="dict.value"-->
+<!--              :label="dict.label"-->
+<!--              :value="parseInt(dict.value)"-->
+<!--            ></el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
       </el-form>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-statistic
+            group-separator=","
+            :precision="2"
+            :value="form.warehouseOutQuantity*form.warehouseOutMoney"
+            title="总库费"
+            :value-style="{color:'#1890FF',fontSize:'30px'}"
+          >
+            <template slot="prefix">
+              <i class="el-icon-s-flag" style="color: #1890FF"></i>
+            </template>
+            <!--            <template slot="suffix">-->
+            <!--              <i class="el-icon-s-flag" style="color: blue"></i>-->
+            <!--            </template>-->
+          </el-statistic>
+        </el-col>
+      </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
@@ -247,7 +322,7 @@ import {listClient} from "../../../api/cold/client";
 
 export default {
   name: "Warehouse_out",
-  dicts: ['ware_number', 'warehouse_category', 'warehouse_out_manner'],
+  dicts: ['ware_number', 'warehouse_category', 'warehouse_out_manner','warehouse_in_settle','warehouse_unit'],
   data() {
     return {
       // 遮罩层
@@ -277,9 +352,11 @@ export default {
         warehouseOutCategory: null,
         warehouseOutNumber: null,
         warehouseOutQuantity: null,
+        warehouseOutUnit: null,
         warehouseOutTime: null,
         warehouseOutMoney: null,
-        warehouseOutManner: null
+        warehouseOutManner: null,
+        warehouseOutSettle: null,
       },
       // 表单参数
       form: {},
@@ -297,6 +374,9 @@ export default {
         ],
         warehouseOutQuantity: [
           { required: true, message: "数量不能为空", trigger: "blur" }
+        ],
+        warehouseOutUnit: [
+          { required: true, message: "单位不能为空", trigger: "blur" }
         ],
         warehouseOutTime: [
           { required: true, message: "出货时间不能为空", trigger: "blur" }
@@ -320,6 +400,7 @@ export default {
       this.loading = true
       listWarehouse_out_wname(this.queryParams).then(response => {
         this.warehouse_outList = response.rows
+
         this.total = response.total
         this.loading = false
       })
@@ -352,10 +433,13 @@ export default {
         warehouseOutClientId: null,
         warehouseOutCategory: null,
         warehouseOutNumber: null,
+        warehouseOutUnit: null,
         warehouseOutQuantity: null,
         warehouseOutTime: null,
         warehouseOutMoney: null,
-        warehouseOutManner: 0
+
+        warehouseOutManner: 0,
+        warehouseOutSettle: 0
       }
       this.resetForm("form")
     },

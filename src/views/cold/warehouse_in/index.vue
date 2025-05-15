@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="客户" prop="warehouseInClient">
-        <el-select v-model="queryParams.warehouseInClient" placeholder="客户" clearable>
+        <el-select v-model="queryParams.warehouseInClient" filterable placeholder="客户" clearable>
           <el-option
             v-for="client in clientList"
             :key="client.clientInfoId"
@@ -65,20 +65,21 @@
           placeholder="请选择入库时间">
         </el-date-picker>
       </el-form-item>
-      <el-form-item label="结算标识" prop="warehouseInSettle">
-        <el-select v-model="queryParams.warehouseInSettle" placeholder="请选择结算标识" clearable>
+
+      <el-form-item label="入库完成" prop="warehouseInFinish">
+        <el-select v-model="queryParams.warehouseInFinish" placeholder="入库完成" clearable>
           <el-option
-            v-for="dict in dict.type.warehouse_in_settle"
+            v-for="dict in dict.type.warehouse_in_finish"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="入库完成" prop="warehouseInFinish">
-        <el-select v-model="queryParams.warehouseInFinish" placeholder="入库完成" clearable>
+      <el-form-item label="结算标识" prop="warehouseInSettle">
+        <el-select v-model="queryParams.warehouseInSettle" placeholder="请选择结算标识" clearable>
           <el-option
-            v-for="dict in dict.type.warehouse_in_finish"
+            v-for="dict in dict.type.warehouse_in_settle"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -168,7 +169,7 @@
           <dict-tag :options="dict.type.warehouse_in_settle" :value="scope.row.warehouseInSettle"/>
         </template>
       </el-table-column>
-      <el-table-column label="入库完成标识" align="center" prop="warehouseInFinish">
+      <el-table-column label="入库状态" align="center" prop="warehouseInFinish">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.warehouse_in_finish" :value="scope.row.warehouseInFinish"/>
         </template>
@@ -227,7 +228,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="数量" prop="warehouseInQuantity">
-          <el-input v-model="form.warehouseInQuantity" placeholder="请输入数量" />
+          <el-input-number :precision="2" v-model="form.warehouseInQuantity" :min="0" placeholder="请输入数量" />
         </el-form-item>
         <el-form-item label="单位" prop="warehouseInUnit">
           <el-select v-model="form.warehouseInUnit" placeholder="请选择单位">
@@ -240,7 +241,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="价格" prop="warehouseInPrice">
-          <el-input v-model="form.warehouseInPrice" placeholder="请输入价格" />
+          <el-input-number :min="0" :precision="2" v-model="form.warehouseInPrice" placeholder="请输入价格" />
         </el-form-item>
         <el-form-item label="库号" prop="warehouseInNumber">
           <el-select v-model="form.warehouseInNumber" placeholder="请选择库号">
@@ -260,8 +261,8 @@
             placeholder="请选择入库时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="入库完成标识" prop="warehouseInFinish">
-          <el-select v-model="form.warehouseInFinish" placeholder="请选择入库完成标识">
+        <el-form-item label="入库状态" prop="warehouseInFinish">
+          <el-select v-model="form.warehouseInFinish" placeholder="请选择入库状态">
             <el-option
               v-for="dict in dict.type.warehouse_in_finish"
               :key="dict.value"
@@ -270,19 +271,19 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="结算标识" prop="warehouseInSettle">
-          <el-select v-model="form.warehouseInSettle" placeholder="请选择结算标识">
-            <el-option
-              v-for="dict in dict.type.warehouse_in_settle"
-              :key="dict.value"
-              :label="dict.label"
-              :value="parseInt(dict.value)"
-            ></el-option>
-          </el-select>
-        </el-form-item>
+<!--        <el-form-item label="结算标识" prop="warehouseInSettle">-->
+<!--          <el-select v-model="form.warehouseInSettle" placeholder="请选择结算标识">-->
+<!--            <el-option-->
+<!--              v-for="dict in dict.type.warehouse_in_settle"-->
+<!--              :key="dict.value"-->
+<!--              :label="dict.label"-->
+<!--              :value="parseInt(dict.value)"-->
+<!--            ></el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
       </el-form>
       <el-row :gutter="20">
-        <el-col span="6">
+        <el-col :span="12">
           <el-statistic
             group-separator=","
             :precision="2"
@@ -290,7 +291,6 @@
             title="总库费"
             :value-style="{color:'#1890FF',fontSize:'30px'}"
           >
-
             <template slot="prefix">
               <i class="el-icon-s-flag" style="color: #1890FF"></i>
             </template>
@@ -300,10 +300,6 @@
           </el-statistic>
         </el-col>
       </el-row>
-
-
-
-
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
@@ -433,7 +429,7 @@ export default {
         warehouseInPrice: null,
         warehouseInNumber: null,
         warehouseInTime: null,
-        warehouseInSettle: null,
+        warehouseInSettle: 0,
         warehouseInFinish: 0
       }
       this.resetForm("form")
