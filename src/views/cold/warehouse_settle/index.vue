@@ -155,10 +155,10 @@
     />
 
     <!-- 添加或修改结算对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="700px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="客户" prop="warehouseSettleClientId">
-          <el-select v-model="form.warehouseSettleClientId" placeholder="请选择客户">
+          <el-select v-model="form.warehouseSettleClientId" placeholder="请选择客户" @change="loadSettle">
             <el-option
               v-for="client in clientList"
               :key="client.clientInfoId"
@@ -169,7 +169,7 @@
 
         </el-form-item>
         <el-form-item label="品类" prop="warehouseSettleCategory">
-          <el-select v-model="form.warehouseSettleCategory" placeholder="请选择品类">
+          <el-select v-model="form.warehouseSettleCategory" placeholder="请选择品类" @change="loadSettle">
             <el-option
               v-for="dict in dict.type.warehouse_category"
               :key="dict.value"
@@ -179,7 +179,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="单位" prop="warehouseSettleUnit">
-          <el-select v-model="form.warehouseSettleUnit" placeholder="请选择单位">
+          <el-select v-model="form.warehouseSettleUnit" placeholder="请选择单位" @change="loadSettle">
             <el-option
               v-for="dict in dict.type.warehouse_unit"
               :key="dict.value"
@@ -188,16 +188,93 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="总件数" prop="warehouseSettleQuantity">
-          <el-input v-model="form.warehouseSettleQuantity" placeholder="请输入总件数" />
-        </el-form-item>
-        <el-form-item label="总库费" prop="warehouseSettleMoneyKu">
-          <el-input v-model="form.warehouseSettleMoneyKu" placeholder="请输入总库费" />
-        </el-form-item>
-        <el-form-item label="总收费" prop="warehouseSettleMoneyShou">
-          <el-input v-model="form.warehouseSettleMoneyShou" placeholder="请输入总收费" />
-        </el-form-item>
+
+
+<!--        <el-form-item label="总件数" prop="warehouseSettleQuantity">-->
+<!--          <el-input v-model="form.warehouseSettleQuantity" placeholder="请输入总件数" />-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="总库费" prop="warehouseSettleMoneyKu">-->
+<!--          <el-input v-model="form.warehouseSettleMoneyKu" placeholder="请输入总库费" />-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="总收费" prop="warehouseSettleMoneyShou">-->
+<!--          <el-input v-model="form.warehouseSettleMoneyShou" placeholder="请输入总收费" />-->
+<!--        </el-form-item>-->
       </el-form>
+
+      <el-table
+        :header-cell-style="{background:'#E7FAF0'}"
+        :data="wareInfo"
+        border
+        style="width: 100%">
+        <el-table-column
+          prop="inTotalQuantity"
+          label="入库总件数"
+          >
+        </el-table-column>
+        <el-table-column
+          prop="inTotalKuFei"
+          label="总库费"
+          >
+        </el-table-column>
+        <el-table-column
+          prop="outTotalQuantity"
+          label="出库总件数">
+
+        </el-table-column>
+        <el-table-column
+          prop="outTotalMaiMoney"
+          label="总收入">
+
+        </el-table-column>
+      </el-table>
+      <el-table
+        :data="outWare"
+
+        border
+        style="width: 100%">
+        <el-table-column
+          prop="warehouseOutQuantity"
+          label="出库量"
+          >
+        </el-table-column>
+        <el-table-column
+          prop="warehouseOutMoney"
+          label="单价"
+          >
+        </el-table-column>
+        <el-table-column
+
+          label="总价">
+          <template #default="scope">
+            <!-- 核心逻辑：计算两列乘积 + 数值校验 + 格式化 -->
+            {{calculateAllOutMoney(scope.row)}}
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-table
+        :data="inWare"
+        border
+        style="width: 100%">
+        <el-table-column
+          prop="warehouseInQuantity"
+          label="入库量"
+          >
+        </el-table-column>
+        <el-table-column
+          prop="warehouseInPrice"
+          label="单价"
+          >
+        </el-table-column>
+        <el-table-column
+
+          label="总价">
+          <template #default="scope">
+            <!-- 核心逻辑：计算两列乘积 + 数值校验 + 格式化 -->
+            {{calculateAllInMoney(scope.row)}}
+          </template>
+        </el-table-column>
+      </el-table>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">生 成</el-button>
         <el-button @click="cancel">取 消</el-button>
@@ -209,13 +286,25 @@
 <script>
 import { listWarehouse_settle, getWarehouse_settle, delWarehouse_settle, addWarehouse_settle, updateWarehouse_settle } from "@/api/cold/warehouse_settle"
 import {listClient} from "../../../api/cold/client";
-import {listWarehouse_settle_wname} from "../../../api/cold/warehouse_settle";
+import {listWarehouse_settle_wname, loadSettle, updateInOut2Settle} from "../../../api/cold/warehouse_settle";
+
 
 export default {
   name: "Warehouse_settle",
   dicts: ['warehouse_unit', 'warehouse_category'],
   data() {
     return {
+
+      wareInfo:[{
+        inTotalKuFei:null,
+        inTotalQuantity:null,
+        inUnit:null,
+        outTotalMaiMoney:null,
+        outTotalQuantity:null,
+        outUnit:null
+      }],
+      outWare:null,
+      inWare:null,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -259,15 +348,15 @@ export default {
         warehouseSettleUnit: [
           { required: true, message: "单位不能为空", trigger: "change" }
         ],
-        warehouseSettleQuantity: [
-          { required: true, message: "总件数不能为空", trigger: "blur" }
-        ],
-        warehouseSettleMoneyKu: [
-          { required: true, message: "总库费不能为空", trigger: "blur" }
-        ],
-        warehouseSettleMoneyShou: [
-          { required: true, message: "总收费不能为空", trigger: "blur" }
-        ]
+        // warehouseSettleQuantity: [
+        //   { required: true, message: "总件数不能为空", trigger: "blur" }
+        // ],
+        // warehouseSettleMoneyKu: [
+        //   { required: true, message: "总库费不能为空", trigger: "blur" }
+        // ],
+        // warehouseSettleMoneyShou: [
+        //   { required: true, message: "总收费不能为空", trigger: "blur" }
+        // ]
       }
     }
   },
@@ -278,11 +367,41 @@ export default {
   },
   methods: {
 
+    calculateAllOutMoney(row) {
+      return row.warehouseOutMoney * row.warehouseOutQuantity;
+    },
+
+    calculateAllInMoney(row) {
+      return row.warehouseInPrice * row.warehouseInQuantity;
+    },
+    loadSettle() {
+      //检查三个值是否都键入
+      if(this.form.warehouseSettleClientId != null && this.form.warehouseSettleCategory != null && this.form.warehouseSettleUnit != null) {
+        loadSettle({'ClientId':this.form.warehouseSettleClientId,'category':this.form.warehouseSettleCategory,'unit':this.form.warehouseSettleUnit}).then(response => {
+          this.outWare = response.outList
+          this.inWare = response.inList
+
+          this.wareInfo[0].inTotalKuFei = response.inTotalKuFei
+          this.wareInfo[0].inTotalQuantity = response.inTotalQuantity
+          this.wareInfo[0].inUnit = response.inUnit
+          this.wareInfo[0].outTotalQuantity = response.outTotalQuantity
+          this.wareInfo[0].outTotalMaiMoney = response.outTotalMaiMoney
+
+
+          this.form.warehouseSettleMoneyKu = response.inTotalKuFei
+          this.form.warehouseSettleMoneyShou = response.outTotalMaiMoney
+          this.form.warehouseSettleQuantity = response.outTotalQuantity
+        })
+      }else {
+
+      }
+    },
+
     getWNameList() {
       this.loading = true
       listWarehouse_settle_wname(this.queryParams).then(response => {
         this.warehouse_settleList = response.rows
-        console.log(this.warehouse_settleList)
+
         this.total = response.total
         this.loading = false
       })
@@ -305,6 +424,16 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false
+      this.inWare = null
+      this.outWare = null
+      this.wareInfo = [{
+        inTotalKuFei:null,
+        inTotalQuantity:null,
+        inUnit:null,
+        outTotalMaiMoney:null,
+        outTotalQuantity:null,
+        outUnit:null
+      }]
       this.reset()
     },
     // 表单重置
@@ -352,6 +481,8 @@ export default {
         this.title = "修改结算单"
       })
     },
+
+
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
@@ -363,11 +494,37 @@ export default {
               this.getWNameList()
             })
           } else {
-            console.log(this.form)
+
             addWarehouse_settle(this.form).then(response => {
               this.$modal.msgSuccess("生成成功")
               this.open = false
+              let inIds = this.inWare.map(item => {
+                return item.warehouseInId
+              });
+              let outIds = this.outWare.map(item => {
+                return item.warehouseOutId
+              });
+
+
+              //修改单子
+              updateInOut2Settle(inIds,outIds).then(resp => {
+                console.log(resp)
+              })
+              this.inWare = null
+              this.outWare = null
+              this.wareInfo = [{
+                inTotalKuFei:null,
+                inTotalQuantity:null,
+                inUnit:null,
+                outTotalMaiMoney:null,
+                outTotalQuantity:null,
+                outUnit:null
+              }]
+
+
+
               this.getWNameList()
+
             })
           }
         }

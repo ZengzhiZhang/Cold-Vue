@@ -1,6 +1,27 @@
 import request from '@/utils/request'
 
 
+export function updateInOut2Settle(inWare,outWare) {
+  console.log(inWare)
+  return request({
+    url: '/cold/warehouse_settle/updateInOut2Settle',
+    method: 'post',
+    data: {
+      'inIds' : inWare,
+      'outIds': outWare
+    },
+
+  })
+}
+
+export function loadSettle(query) {
+  return request({
+    url: '/cold/warehouse_settle/getSettleByClientCategoryUnit',
+    method: 'get',
+    params: query
+  })
+}
+
 export function listWarehouse_settle_wname(query) {
   return request({
     url: '/cold/warehouse_settle/listWName',

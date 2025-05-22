@@ -410,7 +410,7 @@ export default {
     getClientList() {
       listClient(null).then(response => {
         this.clientList = response.rows
-        console.log(this.clientList)
+
       })
     },
     // 取消按钮
@@ -437,7 +437,7 @@ export default {
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1
-      console.log(this.queryParams)
+
       this.getWNameList()
     },
     /** 重置按钮操作 */
